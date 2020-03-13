@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:oauth="http://www.mulesoft.org/schema/mule/oauth"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/oauth http://www.mulesoft.org/schema/mule/oauth/current/mule-oauth.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="6474158b-a4c3-4692-9638-09bea7a98a20" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="08b170f8-c21d-431e-bf9a-60c1dbf87ad5" basePath="${secure::request.basepath}">
+		<http:request-connection host="${secure::request.host}" protocol="HTTPS"/>
+	</http:request-config>
+	<http:listener-config name="HTTP_Listener_config1" doc:name="HTTP Listener config" doc:id="100b1137-6630-4834-a881-a83cdf5e5b0d" >
+		<http:listener-connection host="0.0.0.0" port="8082" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration2" doc:name="HTTP Request configuration" doc:id="bb316285-caaf-4d8a-b364-0b77f06149cd" basePath="${secure::token-request.basepath}">
+		<http:request-connection protocol="HTTPS" host="${secure::token-request.host}" />
+	</http:request-config>
+	<http:request-config name="HTTP_Request_configuration3" doc:name="HTTP Request configuration" doc:id="5d48d383-1185-479f-9330-0ffa31cb5015" basePath="${secure::sheet-request.basepath}">
+		<http:request-connection protocol="HTTPS" host="${secure::sheet-request.host}"/>
+	</http:request-config>
+	<os:object-store name="Object_store1" doc:name="Object store" doc:id="49a41153-e46f-4e55-a505-22b3c61e0e77" entryTtl="50" entryTtlUnit="MINUTES" expirationInterval="20"/>
+	<configuration-properties doc:name="Configuration properties" doc:id="750901db-6f7b-425f-b23b-ebad009db725" file="config.yaml" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="3dfccf78-2bed-499c-92c1-923f383f7af7" file="config.yaml" key="mulesoft" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	<flow name="integ-zoho-people-prc.xml" doc:id="82d01a6e-11d9-41ab-a802-2861b2614fd2" initialState="started">
+		<choice doc:name="check IF access token is exist" doc:id="0adc9136-bdcc-4ef3-93a3-cf1df75a65fd" >
+			<when expression='#[vars.vToken == -1]'>
+				<logger level="INFO" doc:name="generating access token" doc:id="c8924e40-2104-4833-97a4-9d2940804428" />
+				<http:request method="POST" doc:name="HTTP POST access token" doc:id="dc52689a-0286-4324-b6d6-564fe0cedbb2" config-ref="HTTP_Request_configuration2" path="${secure::token-request.path}" responseTimeout='#["40000"]'>
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"refresh_token" : "1//04YACzdRIpRQjCgYIARAAGAQSNwF-L9Ir_iFcqeIAGaDNMtwbagMax3ChskIjeRvugbtnSN3ifIGe1BtkwRDapG3fa7BLFdq6nLA",
+	"client_secret" : "x1zKF1cFsoB8gXT1W7Q-DIyU",
+	"grant_type" : "refresh_token",
+	"client_id" : "366254692863-052v021bbb86offg9n6s24n1jojbc9ng.apps.googleusercontent.com"
+}]]]></http:query-params>
+		</http:request>
+				<set-variable value="#[payload.access_token]" doc:name="SET FV vToken" doc:id="6b41f41c-3190-4286-9431-8e4023ccfd38" variableName="vToken" />
+				<os:store doc:name="Store value of access token" doc:id="28a081ea-ddd0-45cf-8983-01e8d4b3505f" key="vToken" objectStore="Object_store1">
+					<os:value ><![CDATA[#[payload.access_token]]]></os:value>
+		</os:store>
+			
+</when>
+			<otherwise>
+				<logger level="INFO" doc:name="access token exist" doc:id="ef8e01c4-9abb-4c4a-a42e-7d7ea06b774e" />
+			</otherwise>
+		</choice>
+		<http:request method="GET" doc:name="HTTP GET Zoho People Api" doc:id="da89da8f-697b-40b5-af66-75d6c0fa70d1" config-ref="HTTP_Request_configuration" path="${secure::request.path}" responseTimeout='#["40000"]'>
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"authtoken" : "b424df7acaf40c591d4d5b0c4a608a50"
+}]]]></http:query-params>
+		</http:request>
+		<flow-ref doc:name="Refer to integ-zoho-people-prcFlow" doc:id="3fd32efe-6529-4957-a889-851b6765c9a6" name="integ-zoho-people-prc-Sub_Flow"/>
+		<http:request method="POST" doc:name="HTTP POST spreadsheet api" doc:id="e33542d7-d6db-4ad6-85f9-7b5bbb93892c" target="token" config-ref="HTTP_Request_configuration3" path="${secure::sheet-request.path}" responseTimeout='#["40000"]'>
+			<http:headers><![CDATA[#[output application/java
+---
+{
+	"Authorization" : "Bearer " ++ vars.vToken
+}]]]></http:headers>
+		</http:request>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="1c68f56c-d64e-4658-9525-996c57742432" type="ANY">
+				<ee:transform doc:name="DW  map error description to payload" doc:id="2ca4a72c-bd35-4fcd-a424-f7908b5d5172" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	error: error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	
+</flow>
+
+</mule>

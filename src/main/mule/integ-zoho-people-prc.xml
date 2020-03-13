@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<sub-flow name="integ-zoho-people-prc-flow" doc:id="0e225870-c8ad-42de-99de-defd6cce23b3" >
+		<os:retrieve doc:name="Retrieve value of access token" doc:id="beb43bf9-c94a-4723-a596-b315b6a9d5e7" key="vToken" objectStore="Object_store1" target="vToken">
+			<os:default-value><![CDATA[#[-1]]]></os:default-value>
+		</os:retrieve>
+		<flow-ref doc:name="Refer to integ-zoho-people-prc flow" doc:id="e551a06d-a1b1-4771-b673-1d5874288d6d" name="integ-zoho-people-prc.xml" />
+	</sub-flow>
+	<sub-flow name="integ-zoho-people-prc-Sub_Flow" doc:id="e1152230-24ae-4bb4-8af0-62cdb5d6b076" >
+		<ee:transform doc:name="DW map payload" doc:id="cc512ac3-0056-48f8-bf6d-d21a6ed002f5">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload map ((item, index) ->
+{ 
+"modifiedTime": item.modifiedTime,
+"Address": item.Address,
+"Added time": item.'Added time',
+"First Name": item."First Name",
+"Email ID": item."Email ID",
+  "Photo":item.Photo,
+"Job Description": item."Job Description",
+"Added By": item."Added By",
+"Source of Hire": item."Source of Hire",
+"Gender": item.Gender,
+"ApprovalStatus":item.ApprovalStatus,
+ "recordId": item.recordId,
+  "Modified By":item."Modified By",
+  "Department": item.Department,
+   "Other Email": item."Other Email",
+   "Modified time": item."Modified time",
+    "ownerName": item.ownerName,
+    "Nick Name": item."Nick Name",
+    "createdTime": item.createdTime,
+    "Date of joining": item."Date of joining",
+    "Employee Role": item."Employee Role",
+    "Age": item.Age,
+    "Photo_downloadUrl": item.Photo_downloadUrl,
+     "Reporting To": item."Reporting To",
+      "Ask me about/Expertise": item."Ask me about/Expertise",
+       "Employee Status": item."Employee Status",
+       "Work phone": item."Work phone",
+       "Title": item.Title,
+       "ownerID": item.ownerID,
+        "Marital Status": item."Marital Status",
+         "Date of exit": item."Date of exit",
+         "Extension": item.Extension,
+         "Work location":item."Work location",
+         "Experience": item.Experience,
+          "EmployeeID": item.EmployeeID,
+          "Last Name": item."Last Name",
+          "Mobile Phone": item."Mobile Phone",
+        
+
+
+
+
+})]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="DW map paylod for spreadsheet" doc:id="eea49884-c44e-4697-921c-0dbaf925a591">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+
+	{
+  "majorDimension": "ROWS",
+  "range": "Sheet1",
+  "values": payload map(payload,index)->
+  	[
+  	
+  
+  	payload.modifiedTime,
+  	payload.Address,
+  	payload.'Added time',
+  	payload.'First Name',
+  	payload.'Email ID',
+  	payload.'Added time',
+  	payload.'First Name',
+  	payload.'Email ID',
+  	payload.Photo,
+  	payload.'Job Description',
+  	payload.'Added By',
+  	payload.'Source of Hire',
+  	payload.Gender,
+  	payload.ApprovalStatus,
+  	payload.recordId,
+  	payload.'Modified By',
+  	payload.'EmployeeID',
+  	payload.'Last Name',
+  	payload.'Mobile Phone'
+  	
+  	]
+  
+  
+  }
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

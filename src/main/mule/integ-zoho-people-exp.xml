@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="integ-zoho-people-exp-flow" doc:id="69308af6-ff43-4313-bc41-eb642fb72ca1" >
+		<http:listener doc:name="POST/write-spreadsheet" doc:id="914330e2-32d2-4165-9cf7-bc420bff8b05" config-ref="HTTP_Listener_config1" path="/write-spreadsheet" />
+		<flow-ref doc:name="Refer to integ-zoho-people-prc-flow" doc:id="1b7d8891-f739-4a43-a81d-39956d0661f6" name="integ-zoho-people-prc-flow" />
+		<error-handler>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="bb608d46-03f7-4834-a192-d3345614bcef" type="ANY" >
+				<ee:transform doc:name="DW  map error description to payload" doc:id="21229a70-afd3-4784-a77a-5da9aba30c47" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	error: error.description
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>
