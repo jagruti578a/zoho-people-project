@@ -7,6 +7,6 @@ Algorithm
 4.Configure request for fetching  the details of the employee records from Zoho People using API calls.
 5.map data of employee in transform message.
 6.Again map the fields of employee records with respective spreadsheet.
-7.Congigure request for inserting employee records of zoho people into spreadsheet.
+7.Configure request for inserting employee records of zoho people into spreadsheet.
 
 
